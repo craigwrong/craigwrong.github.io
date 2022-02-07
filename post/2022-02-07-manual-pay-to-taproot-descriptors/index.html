@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="/assets/global.css" />
+        <link rel="stylesheet" href="/assets/highlight.css" />
+        <script src="/assets/highlight.js"></script>
+        <script>hljs.highlightAll();</script>
+        <title>Timechain Coder ⚡️ | Manual Pay-To-Taproot Descriptors</title>
+    </head>
+    <body>
+        <header>
+            <div>
+                <div class="site-title">
+                    <span class="name">Timechain Coder ⚡️</span> – Findings around Bitcoin development</div>
+                <nav>
+    <ul>
+        <li><a href="/">Home</a></li><li><a href="/about">About</a></li>
+    </ul>
+</nav>
+            </div>
+        </header>
+        <main class="post"><article>
+    <header>
+        <p class="date">Feb 7, 2022 • <a href="/category/bitcoinCore">Bitcoin Core</a></p>
+        <h1 class="title">
+            Manual Pay-To-Taproot Descriptors
+        </h1>
+    </header>
+    <main>
+    <p>Even though Bitcoin Core 22 is the first version to support Pay-to-Taproot outputs, its wallet component does not yet initialize with a <code>tr()</code> descriptor by default. While this is <a href="https://github.com/bitcoin/bitcoin/pull/22364">expected to change</a> in version 23, there are still reasons to want to import this output descriptor manually.</p>
+<h1>Motivation</h1>
+<p>We may want to add <code>bech32m</code> address generation capabilities to an existing descriptor wallet created by a previous version of Core. Or we might need a wallet which <em>only</em> supports this type of address format. In this article we are going to go through the steps of constructing such a descriptor as well as importing it into an empty wallet.</p>
+<h1>Descriptor format</h1>
+<p>The general format of a <code>tr()</code> descriptor as defined by <a href="https://github.com/bitcoin/bips/blob/master/bip-0380.mediawiki#Specification">BIP 380</a> and <a href="https://github.com/bitcoin/bips/blob/master/bip-0386.mediawiki">BIP 386</a> reads as follows.</p>
+<p><code>tr([FINGERPRINT/NUM'/…/NUM']PRIVATE_KEY/NUM/…/*)#CHECKSUM</code></p>
+<p>Where <code>FINGERPRINT</code> is the what identifies the originating public key. <code>PRIVATE_KEY</code> is the <code>xpriv</code> used to generate all child keys with corresponding addresses. <code>NUM</code> represents an index in the derivation path with an optional <code>'</code> marker for hardened derivation. Derivation paths are used both to describe the origin of the supplied private key as well as an indication of how exactly new addresses will be generated. Finally a <code>CHECKSUM</code> is added at the end for safety.</p>
+<p>As an example, final version of a taproot descriptor might look like this:</p>
+<pre><code>tr([ed493b83/86'/0'/0']xprv9xgqHN7yz9MwCkxsBPN5qetuNdQSUttZNKw1dcYTV4mkaAFiBVGQziHs3NRSWMkCzvgjEe3n9xV8oYywvM8at9yRqyaZVz6TYYhX98VjsUk/0/*)#06sjusfa
+</code></pre>
+<h1>Additional tools</h1>
+<p>In addition to Core we will make use of the <a href="https://github.com/libbitcoin/libbitcoin-explorer">Bitcoin Explorer</a> command-line tool by <a href="https://libbitcoin.info">Libbitcoin</a>. For extra verification we will also use a <a href="https://github.com/craigwrong/schnorr-tool">custom tool</a> that can also create <code>bech32m</code> addresses.</p>
+<h1>Test vectors</h1>
+<p>Throughout this process we will check our results against the test vectors defined in <a href="https://github.com/bitcoin/bips/blob/master/bip-0086.mediawiki#Test_vectors">BIP 86</a>.</p>
+<h1>Deriving a private key</h1>
+<p>Bitcoin Core does not support mnemonic seeds but we can still use one to generate our private key. Intermediate results are shown as Bash comments after each command and are almost always used as input for the next command.</p>
+<pre><code class="language-sh">bx mnemonic-to-seed abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about
+# 5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4
+
+bx hd-new 5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4
+# xprv9s21ZrQH143K3GJpoapnV8SFfukcVBSfeCficPSGfubmSFDxo1kuHnLisriDvSnRRuL2Qrg5ggqHKNVpxR86QEC8w35uxmGoggxtQTPvfUu
+
+bx hd-to-public xprv9s21ZrQH143K3GJpoapnV8SFfukcVBSfeCficPSGfubmSFDxo1kuHnLisriDvSnRRuL2Qrg5ggqHKNVpxR86QEC8w35uxmGoggxtQTPvfUu
+# xpub661MyMwAqRbcFkPHucMnrGNzDwb6teAX1RbKQmqtEF8kK3Z7LZ59qafCjB9eCRLiTVG3uxBxgKvRgbubRhqSKXnGGb1aoaqLrpMBDrVxga8
+</code></pre>
+<h1>Calculate fingerprint</h1>
+<p>As per <a href="https://en.bitcoin.it/wiki/BIP_0032">BIP 32</a> specification we calculate our public key's fingerprint by encoding it, hashing it and taking its first 8 characters.</p>
+<pre><code class="language-sh">bx base58-decode xpub661MyMwAqRbcFkPHucMnrGNzDwb6teAX1RbKQmqtEF8kK3Z7LZ59qafCjB9eCRLiTVG3uxBxgKvRgbubRhqSKXnGGb1aoaqLrpMBDrVxga8
+# 0488b21e0000000000000000007923408dadd3c7b56eed15567707ae5e5dca089de972e07f3b860450e2a3b70e03d902f35f560e0470c63313c7369168d9d7df2d49bf295fd9fb7cb109ccee0494c7fe61f5
+
+bx bitcoin160 0488b21e0000000000000000007923408dadd3c7b56eed15567707ae5e5dca089de972e07f3b860450e2a3b70e03d902f35f560e0470c63313c7369168d9d7df2d49bf295fd9fb7cb109ccee0494c7fe61f5
+# ed493b8354c1766c6b0a55c906d34582818baa8b
+
+echo ed493b8354c1766c6b0a55c906d34582818baa8b | cut -c 1-8
+# ed493b83
+</code></pre>
+<p>So in this case the fingerprint identifying our master public key will be <code>ed493b83</code>.</p>
+<h1>Account keys</h1>
+<p>The derivation path <code>86'/0'/0'</code> is used to compute the account key pair.</p>
+<pre><code class="language-sh">bx hd-private -d -i 86 xprv9s21ZrQH143K3GJpoapnV8SFfukcVBSfeCficPSGfubmSFDxo1kuHnLisriDvSnRRuL2Qrg5ggqHKNVpxR86QEC8w35uxmGoggxtQTPvfUu
+# xprv9ukW2Usuz4vBKZJxKfMUwtjtSTD2U4QxW1ue4prK5TYzYM3voo8EEyUPsyYHvHP8jvj9w4Xr6SAdpEGEDVfpQm8q1puVtRTUidX4mgrouHH
+
+bx hd-private -d -i 0 xprv9ukW2Usuz4vBKZJxKfMUwtjtSTD2U4QxW1ue4prK5TYzYM3voo8EEyUPsyYHvHP8jvj9w4Xr6SAdpEGEDVfpQm8q1puVtRTUidX4mgrouHH
+# xprv9wMkdjRwYptb4FzqvUNxxehWWywVtgVvrV5X9BKb16bugM5eQJdHLG7dVF3W1r1KkkSHN3s3txMNMEcisTRLK2ogyU4mek8eAPfXkfUqhhG
+
+bx hd-private -d -i 0 xprv9wMkdjRwYptb4FzqvUNxxehWWywVtgVvrV5X9BKb16bugM5eQJdHLG7dVF3W1r1KkkSHN3s3txMNMEcisTRLK2ogyU4mek8eAPfXkfUqhhG
+# xprv9xgqHN7yz9MwCkxsBPN5qetuNdQSUttZNKw1dcYTV4mkaAFiBVGQziHs3NRSWMkCzvgjEe3n9xV8oYywvM8at9yRqyaZVz6TYYhX98VjsUk
+</code></pre>
+<p>We now have the account private key to use in our descriptor:</p>
+<pre><code>xprv9xgqHN7yz9MwCkxsBPN5qetuNdQSUttZNKw1dcYTV4mkaAFiBVGQziHs3NRSWMkCzvgjEe3n9xV8oYywvM8at9yRqyaZVz6TYYhX98VjsUk
+</code></pre>
+<h1>Obtain the checksum</h1>
+<p>To calculate the checksum value we use the <code>getdescriptorinfo</code> Bitcoin Core command.</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo &quot;tr([ed493b83/86'/0'/0']xprv9xgqHN7yz9MwCkxsBPN5qetuNdQSUttZNKw1dcYTV4mkaAFiBVGQziHs3NRSWMkCzvgjEe3n9xV8oYywvM8at9yRqyaZVz6TYYhX98VjsUk/0/*)&quot;
+# …
+# &quot;checksum&quot;: &quot;06sjusfa&quot;,
+# …
+</code></pre>
+<p>Ignore the public key descriptor returned by the command, we only care about the value explicitly defined for the key <code>checksum</code>. With the correct value <code>06sjusfa</code> our descriptor is now complete:</p>
+<pre><code>tr([ed493b83/86'/0'/0']xprv9xgqHN7yz9MwCkxsBPN5qetuNdQSUttZNKw1dcYTV4mkaAFiBVGQziHs3NRSWMkCzvgjEe3n9xV8oYywvM8at9yRqyaZVz6TYYhX98VjsUk/0/*)#06sjusfa
+</code></pre>
+<h1>Importing the descriptor</h1>
+<p>We are going to use an empty descriptor wallet encoded with a <code>secret</code> passphrase.</p>
+<pre><code class="language-sh">bitcoin-cli createwallet taprootwallet false true secret false true true false
+# {
+#   &quot;name&quot;: &quot;taprootwallet&quot;,
+#   &quot;warning&quot;: &quot;Wallet is an experimental descriptor wallet&quot;
+# }
+</code></pre>
+<p>We need to unlock the wallet first and then import our descriptor.</p>
+<pre><code class="language-sh">bitcoin-cli walletpassphrase secret 60
+bitcoin-cli importdescriptors &quot;[
+  {
+    &quot;desc&quot;: &quot;tr([ed493b83/86'/0'/0']xprv9xgqHN7yz9MwCkxsBPN5qetuNdQSUttZNKw1dcYTV4mkaAFiBVGQziHs3NRSWMkCzvgjEe3n9xV8oYywvM8at9yRqyaZVz6TYYhX98VjsUk/0/*)#06sjusfa&quot;,
+    &quot;timestamp&quot;: &quot;now&quot;,
+    &quot;active&quot;: true,
+    &quot;internal&quot;: false,
+    &quot;range&quot;: [
+      0,
+      999
+    ],
+    &quot;next&quot;: 0
+  }
+]&quot;
+# …
+# &quot;success&quot;: true
+# …
+</code></pre>
+<p>We can double-check that the descriptor was imported correctly by using Core command <code>listdescriptors</code>.</p>
+<h1>Get a <code>bech32m</code> address</h1>
+<p>We now use the <code>getnewaddress</code> command and specify the address type <code>bech32m</code> for which the wallet will utilize our just-imported descriptor.</p>
+<pre><code class="language-sh">bitcoin-cli getnewaddress &quot;Taproot address&quot; bech32m
+# bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr
+</code></pre>
+<p>Now we can receive BTC from a Taproot-enabled wallet at address <code>bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr</code>.</p>
+<h1>Account <code>xpub</code></h1>
+<p>The process of assembling and importing a descriptor could be repeated with an <code>xpub</code> public key. This would be useful for a watch-only wallet, capable of verifying a balance without the ability to spend from it. Or as a way to give out to a payer so that they can issue recurring payments towards us without needing to reuse addresses.</p>
+<p>To derive the corresponding public key from our private key we again turn to <code>bx</code>.</p>
+<pre><code class="language-sh">bx hd-to-public xprv9xgqHN7yz9MwCkxsBPN5qetuNdQSUttZNKw1dcYTV4mkaAFiBVGQziHs3NRSWMkCzvgjEe3n9xV8oYywvM8at9yRqyaZVz6TYYhX98VjsUk
+# xpub6BgBgsespWvERF3LHQu6CnqdvfEvtMcQjYrcRzx53QJjSxarj2afYWcLteoGVky7D3UKDP9QyrLprQ3VCECoY49yfdDEHGCtMMj92pReUsQ
+</code></pre>
+<p>The rest of the process is analogous.</p>
+<h1>Additional verifications</h1>
+<p>We want to check our values against the test vectors. We will start by deriving the first receiving address for path <code>m/86'/0'/0'/0/0</code>.</p>
+<pre><code class="language-sh">bx hd-private -i 0 xprv9xgqHN7yz9MwCkxsBPN5qetuNdQSUttZNKw1dcYTV4mkaAFiBVGQziHs3NRSWMkCzvgjEe3n9xV8oYywvM8at9yRqyaZVz6TYYhX98VjsUk
+# xprvA1n4fAv8WWZbfAECqqZsPxRCCaBUqLXF9VdqK1RMAhcyyAoM3fGx6ytPfVrTHMhqLqGLJP4pgLBsQKYb53tnM3vSDPS6U756uWfrF2TpcXS
+
+bx hd-private -i 0 xprvA1n4fAv8WWZbfAECqqZsPxRCCaBUqLXF9VdqK1RMAhcyyAoM3fGx6ytPfVrTHMhqLqGLJP4pgLBsQKYb53tnM3vSDPS6U756uWfrF2TpcXS
+# xprvA449goEeU9okwCzzZaxiy475EQGQzBkc65su82nXEvcwzfSskb2hAt2WymrjyRL6kpbVTGL3cKtp9herYXSjjQ1j4stsXXiRF7kXkCacK3T
+
+bx hd-to-public xprvA449goEeU9okwCzzZaxiy475EQGQzBkc65su82nXEvcwzfSskb2hAt2WymrjyRL6kpbVTGL3cKtp9herYXSjjQ1j4stsXXiRF7kXkCacK3T
+# xpub6H3W6JmYJXN49h5TfcVjLC3onS6uPeUTTJoVvRC8oG9vsTn2J8LwigLzq5tHbrwAzH9DGo6ThGUdWsqce8dGfwHVBxSbixjDADGGdzF7t2B
+</code></pre>
+<p>For the Schnorr-specific internal and output keys we use <code>schnorr-tool</code>. From that we will encode the <code>bech32m</code> address which should match the one we got from our wallet.</p>
+<pre><code class="language-sh">bx hd-to-ec xprvA449goEeU9okwCzzZaxiy475EQGQzBkc65su82nXEvcwzfSskb2hAt2WymrjyRL6kpbVTGL3cKtp9herYXSjjQ1j4stsXXiRF7kXkCacK3T
+# 41f41d69260df4cf277826a9b65a3717e4eeddbeedf637f212ca096576479361
+
+schnorr-tool internal-key 41f41d69260df4cf277826a9b65a3717e4eeddbeedf637f212ca096576479361
+# cc8a4bc64d897bddc5fbc2f670f7a8ba0b386779106cf1223c6fc5d7cd6fc115
+
+schnorr-tool tweak cc8a4bc64d897bddc5fbc2f670f7a8ba0b386779106cf1223c6fc5d7cd6fc115
+# 2ca01ed85cf6b6526f73d39a1111cd80333bfdc00ce98992859848a90a6f0258
+
+schnorr-tool output-key cc8a4bc64d897bddc5fbc2f670f7a8ba0b386779106cf1223c6fc5d7cd6fc115 2ca01ed85cf6b6526f73d39a1111cd80333bfdc00ce98992859848a90a6f0258
+# a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
+
+schnorr-tool output-script a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
+5120a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
+
+schnorr-tool address a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
+bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr
+</code></pre>
+<p>Seeing that the test vectors and the two addresses match provides verification that the process is correct and that we can trust it to initialize wallets with non-trivial random seed phrases.</p>
+<h1>Conclusion</h1>
+<p>Performing operations like this manually help us understand the inner workings of the protocol as well as increasing our confidence in the use of Bitcoin Core as a tool. Furthermore it allows us to gain finer control of our wallet's behavior.</p>
+<p>Make sure to try this on <code>testnet</code>/<code>regtest</code> first before putting real money on the line.</p>
+
+    </main>
+</article></main>
+        <footer>
+    <a href="https://github.com/craigwrong/craigwrong.github.io">Cypherpunks write code 👾</a>
+</footer>
+    </body>
+</html>
