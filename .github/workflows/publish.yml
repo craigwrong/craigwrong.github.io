@@ -1,0 +1,21 @@
+name: Generate and publish
+on:
+  push:
+    branches: [release]
+jobs:
+  generate-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: fwal/setup-swift@v1
+      with:
+        swift-version: "5.5.2"
+    - uses: actions/checkout@v2
+    - name: Generate static site
+      run: swift run -c release swiftysites --clean
+    - name: Deploy to GH Pages
+      uses: JamesIves/github-pages-deploy-action@v4.2.3
+      with:
+        branch: www
+        folder: www
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

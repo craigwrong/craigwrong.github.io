@@ -1,0 +1,34 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "GFMarkdown",
+        "repositoryURL": "https://github.com/swiftysites/gfmarkdown",
+        "state": {
+          "branch": "1.0.2",
+          "revision": "582b7f71cce26e61bb354e7592934e45493908ac",
+          "version": null
+        }
+      },
+      {
+        "package": "swift-argument-parser",
+        "repositoryURL": "https://github.com/apple/swift-argument-parser",
+        "state": {
+          "branch": null,
+          "revision": "83b23d940471b313427da226196661856f6ba3e0",
+          "version": "0.4.4"
+        }
+      },
+      {
+        "package": "SwiftySites",
+        "repositoryURL": "https://github.com/swiftysites/swiftysites",
+        "state": {
+          "branch": "release",
+          "revision": "5d071c8aee407d9c1aedd4e4eacecc67f82412f8",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}
