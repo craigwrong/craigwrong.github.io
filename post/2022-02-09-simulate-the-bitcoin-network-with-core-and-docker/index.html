@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="/assets/global.css" />
+        <link rel="stylesheet" href="/assets/highlight.css" />
+        <script src="/assets/highlight.js"></script>
+        <script>hljs.highlightAll();</script>
+        <title>Timechain Coder ⚡️ | Simulate the Bitcoin Network with Core and Docker</title>
+    </head>
+    <body>
+        <header>
+            <div>
+                <div class="site-title">
+                    <span class="name">Timechain Coder ⚡️</span> – Thoughts and findings around Bitcoin development</div>
+                <nav>
+    <ul>
+        <li><a href="/">Home</a></li><li><a href="/about">About</a></li>
+    </ul>
+</nav>
+            </div>
+        </header>
+        <main class="post"><article>
+    <header>
+        <p class="date">Feb 9, 2022 • <a href="/category/bitcoinCore">Bitcoin Core</a></p>
+        <h1 class="title">
+            Simulate the Bitcoin Network with Core and Docker
+        </h1>
+    </header>
+    <main>
+    <p>For a long time has Bitcoin Core had the ability to run in <em>regtest</em> mode. While the name indicates that this feature is intended for regression testing, it actually serves as a way to create simulated networks – what <a href="https://github.com/btcsuite/btcd">btcd</a> node runners would know as a <em>simnet</em>.</p>
+<h1>Test versus simulated networks</h1>
+<p>In a <a href="https://en.bitcoin.it/wiki/Testnet">test network</a> participants not known to each other connect to maintain a pretend blockchain made to resemble the real Bitcoin network in every way possible. These networks are seeded by Core developers and are usually kept alive for a couple of years while users perform their dry runs before moving on to the main chain. There's usually one such network at a time which at the time of writing is called <code>testnet3</code>.</p>
+<p>Simulated networks on the other hand are isolated experiments with known participants. Being able to fully control the variables affecting the environment is key for developers who seek to gain insight into the Bitcoin protocol in order to produce robust well-integrated solutions.</p>
+<h1>Configuring a simulated network</h1>
+<p>Launching a simulated network can be as simple as appending the <code>-regtest</code> flag to our daemon invocation:</p>
+<pre><code class="language-sh">bitcoind -regtest
+# 2022-02-08T16:43:58Z Bitcoin Core version v22.0.0 (release build)
+# …
+</code></pre>
+<p>Alternatively we can specify this option in the configuration file:</p>
+<pre><code class="language-sh">cat bitcoin.conf
+regtest=1
+</code></pre>
+<p>We can now connect to our single <code>regtest</code> node and ask for information.</p>
+<pre><code class="language-sh"> bitcoin-cli -regtest -getinfo
+# {
+#   &quot;blocks&quot;: 0,
+#   &quot;headers&quot;: 0,
+#   &quot;connections&quot;: {
+#     &quot;in&quot;: 0,
+#     &quot;out&quot;: 0,
+#     &quot;total&quot;: 0
+#   },
+#   &quot;chain&quot;: &quot;regtest&quot;,
+# }
+</code></pre>
+<p>Since we can't have a network with only one node let's spin off another participant. For this we will need to create a new data directory which we will name <code>hal</code>. We will also need to provide alternative ports to avoid collisions with our initial instance.</p>
+<pre><code class="language-sh">mkdir hal
+bitcoind -datadir=$PWD/hal -regtest -rpcport=18453 -bind=127.0.0.1:18455
+# 2022-02-08T16:43:58Z Bitcoin Core version v22.0.0 (release build)
+</code></pre>
+<p>We can now connect our nodes with each other.</p>
+<pre><code class="language-sh">bitcoin-cli -datadir=$PWD/hal -regtest -rpcport=18453 addnode 127.0.0.1 onetry
+bitcoin-cli -regtest addnode 127.0.0.1:18455 onetry
+bitcoin-cli -regtest getnetworkinfo
+# {
+#   …
+#   &quot;connections&quot;: 2,
+#   &quot;connections_in&quot;: 1,
+#   &quot;connections_out&quot;: 1,
+#   …
+# }
+</code></pre>
+<p>The connection was made successfully but before we continue – we can already see how with all peers being identified by same loopback address can be confusing. Having to specify alternative ports for each of the nodes' interfaces can also get very messy, very quickly. It would be great if we were able to isolate every instance and run them in an IP network of their own where they each get a unique address with default TCP bindings.</p>
+<h1>Dockerized <code>bitcoind</code></h1>
+<p>To be continued…</p>
+
+    </main>
+    
+</article></main>
+        <footer>
+    <a href="https://github.com/craigwrong/craigwrong.github.io">Cypherpunks write code 👾</a>
+</footer>
+    </body>
+</html>
