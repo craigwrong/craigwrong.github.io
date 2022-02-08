@@ -29,7 +29,7 @@
         </h1>
     </header>
     <main>
-    <p>Even though Bitcoin Core 22 is the first version to support Pay-to-Taproot outputs, its wallet component does not yet initialize with a <code>tr()</code> descriptor by default. While this is <a href="https://github.com/bitcoin/bitcoin/pull/22364">expected to change</a> in version 23, there are still reasons to want to import this output descriptor manually.</p>
+    <p>Even though Bitcoin Core 22 is the <a href="https://bitcoincore.org/en/releases/22.0/">first version</a> to support Pay-to-Taproot outputs, its wallet component does not yet initialize with a <code>tr()</code> descriptor by default. While this is <a href="https://github.com/bitcoin/bitcoin/pull/22364">expected to change</a> in version 23, there are still reasons to want to import this output descriptor manually.</p>
 <h1>Motivation</h1>
 <p>We may want to add <code>bech32m</code> address generation capabilities to an existing descriptor wallet created by a previous version of Core. Or we might need a wallet which <em>only</em> supports this type of address format. In this article we are going to go through the steps of constructing such a descriptor as well as importing it into an empty wallet.</p>
 <h1>Descriptor format</h1>
@@ -156,10 +156,10 @@ schnorr-tool output-key cc8a4bc64d897bddc5fbc2f670f7a8ba0b386779106cf1223c6fc5d7
 # a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
 
 schnorr-tool output-script a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
-5120a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
+# 5120a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
 
 schnorr-tool address a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
-bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr
+# bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr
 </code></pre>
 <p>Seeing that the test vectors and the two addresses match provides verification that the process is correct and that we can trust it to initialize wallets with non-trivial random seed phrases.</p>
 <h1>Conclusion</h1>
@@ -167,6 +167,10 @@ bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr
 <p>Make sure to try this on <code>testnet</code>/<code>regtest</code> first before putting real money on the line.</p>
 
     </main>
+    <footer>
+    <hr />
+    <p>Discuss this post <a href="https://twitter.com/notcraigwright/status/1490766439317442565">on Twitter</a>.</p>
+</footer>
 </article></main>
         <footer>
     <a href="https://github.com/craigwrong/craigwrong.github.io">Cypherpunks write code 👾</a>
