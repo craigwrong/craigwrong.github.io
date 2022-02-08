@@ -1,4 +1,5 @@
 let postManualPayToTaprootDescriptors = Post("/post/2022-02-07-manual-pay-to-taproot-descriptors", "Manual Pay-To-Taproot Descriptors", "2022-02-07T12:00:00Z", .bitcoinCore, "1490766439317442565") { """
+
 Even though Bitcoin Core 22 is the [first version](https://bitcoincore.org/en/releases/22.0/) to support Pay-to-Taproot outputs, its wallet component does not yet initialize with a `tr()` descriptor by default. While this is [expected to change](https://github.com/bitcoin/bitcoin/pull/22364) in version 23, there are still reasons to want to import this output descriptor manually.
 
 # Motivation

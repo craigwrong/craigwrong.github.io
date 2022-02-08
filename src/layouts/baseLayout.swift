@@ -16,7 +16,7 @@ func baseLayout (site: Site, page: Page? = nil, post: Post? = nil, main: String)
         <header>
             <div>
                 <div class="site-title">
-                    <span class="name">Timechain Coder ⚡️</span> – Findings around Bitcoin development</div>
+                    <span class="name">Timechain Coder ⚡️</span> – Thoughts and findings around Bitcoin development</div>
                 \(navigationPartial(site, page))
             </div>
         </header>

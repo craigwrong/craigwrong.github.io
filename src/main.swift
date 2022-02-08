@@ -3,6 +3,7 @@ let site = Site(config,
         pageHome, pageAbout
     ],
     contentB: [
+        postSimulateTheBitcoinNetworkWithCoreAndDocker,
         postManualPayToTaprootDescriptors,
     ],
     templates: [
