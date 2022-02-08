@@ -9,5 +9,15 @@ let postTemplate = Site.templateB { site, post in baseLayout(site: site, post: p
     <main>
     \(post.content)
     </main>
+    \(
+        post.tweet == .none
+        ? ""
+        : """
+        <footer>
+            <hr />
+            <p>Discuss this post <a href="https://twitter.com/notcraigwright/status/\(post.tweet!)">on Twitter</a>.</p>
+        </footer>
+        """
+    )
 </article></main>
 """ ) }

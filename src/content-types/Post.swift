@@ -6,6 +6,7 @@ struct Post: Content {
     let title: String
     let date: Date
     let category: Category
+    let tweet: String?
 
     @Markdown private(set) var content: String
 
@@ -14,6 +15,7 @@ struct Post: Content {
         _ title: String,
         _ date: String,
         _ category: Category,
+        _ tweet: String? = .none,
         content: () -> String
     ) {
         self.path = path
@@ -23,6 +25,7 @@ struct Post: Content {
         }
         self.date = date
         self.category = category
+        self.tweet = tweet
         self.content = content()
     }
 

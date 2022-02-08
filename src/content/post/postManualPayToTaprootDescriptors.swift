@@ -1,5 +1,5 @@
-let postManualPayToTaprootDescriptors = Post("/post/2022-02-07-manual-pay-to-taproot-descriptors", "Manual Pay-To-Taproot Descriptors", "2022-02-07T12:00:00Z", .bitcoinCore) { """
-Even though Bitcoin Core 22 is the first version to support Pay-to-Taproot outputs, its wallet component does not yet initialize with a `tr()` descriptor by default. While this is [expected to change](https://github.com/bitcoin/bitcoin/pull/22364) in version 23, there are still reasons to want to import this output descriptor manually.
+let postManualPayToTaprootDescriptors = Post("/post/2022-02-07-manual-pay-to-taproot-descriptors", "Manual Pay-To-Taproot Descriptors", "2022-02-07T12:00:00Z", .bitcoinCore, "1490766439317442565") { """
+Even though Bitcoin Core 22 is the [first version](https://bitcoincore.org/en/releases/22.0/) to support Pay-to-Taproot outputs, its wallet component does not yet initialize with a `tr()` descriptor by default. While this is [expected to change](https://github.com/bitcoin/bitcoin/pull/22364) in version 23, there are still reasons to want to import this output descriptor manually.
 
 # Motivation
 
@@ -189,10 +189,10 @@ schnorr-tool output-key cc8a4bc64d897bddc5fbc2f670f7a8ba0b386779106cf1223c6fc5d7
 # a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
 
 schnorr-tool output-script a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
-5120a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
+# 5120a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
 
 schnorr-tool address a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c
-bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr
+# bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr
 ```
 
 Seeing that the test vectors and the two addresses match provides verification that the process is correct and that we can trust it to initialize wallets with non-trivial random seed phrases.
