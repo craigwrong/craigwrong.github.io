@@ -75,10 +75,59 @@ bitcoin-cli -regtest getnetworkinfo
 </code></pre>
 <p>The connection was made successfully but before we continue – we can already see how with all peers being identified by same loopback address can be confusing. Having to specify alternative ports for each of the nodes' interfaces can also get very messy, very quickly. It would be great if we were able to isolate every instance and run them in an IP network of their own where they each get a unique address with default TCP bindings.</p>
 <h1>Dockerized <code>bitcoind</code></h1>
-<p>To be continued…</p>
+<p>For a dockerized version of Bitcoin Core we will build our own images using this <a href="https://github.com/craigwrong/docker-bitcoin-core/blob/develop/Dockerfile"><code>Dockerfile</code> definition</a>. Note that the process might take a few minutes as we are compiling the binaries directly from source code – as one should.</p>
+<pre><code class="language-sh">git clone https://github.com/craigwrong/docker-bitcoin-core
+cd docker-bitcoin-core
+docker build --target daemon-wallet -t bitcoind .
+docker build --target cli -t bitcoin-cli .
+</code></pre>
+<p>We now have an image for the daemon complete with wallet support as well as one for <code>bitcoin-cli</code>. We can now proceed with creating a network called <code>bitcoin-regtest</code> which will contain all of our Core instances.</p>
+<pre><code class="language-sh">docker network create --subnet=10.0.0.0/16 bitcoin-regtest
+</code></pre>
+<p>Before we launch our first instance let's create a simple configuration file in what will be this node's data folder.</p>
+<pre><code class="language-sh">mkdir satoshi
+cat &lt;&lt; EOF &gt;&gt; satoshi/bitcoin.conf
+regtest=1
+txindex=1
+rpcallowip=10.0.0.0/16
+[regtest]
+addnode=10.0.0.3
+rpcbind=0.0.0.0
+EOF
+</code></pre>
+<p>Notice that we will attempt to connect to a peer with IP <code>10.0.0.3</code>. Let's launch this daemon first with IP <code>10.0.0.2</code>.</p>
+<pre><code class="language-sh">docker run --network bitcoin-regtest --ip 10.0.0.2 --name bitcoind-satoshi --rm -t -v $PWD/satoshi:/root/.bitcoin bitcoind
+</code></pre>
+<p>We will now do the analogous thing for Hal's node. The only change is that we will connect it to the previously launched node.</p>
+<pre><code class="language-sh">cat &lt;&lt; EOF &gt;&gt; hal/bitcoin.conf
+regtest=1
+txindex=1
+rpcallowip=10.0.0.0/16
+[regtest]
+addnode=10.0.0.2
+rpcbind=0.0.0.0
+EOF
+
+docker run --network bitcoin-regtest --ip 10.0.0.3 --name bitcoind-hal --rm -t -v $PWD/hal:/root/.bitcoin bitcoind
+</code></pre>
+<p>We should see in the respective consoles whether the peers successfully connected with each other.</p>
+<h1>Querying nodes</h1>
+<p>To keep things clean, we want to query our nodes using the CLI from within the virtual network we created using Docker. To do this we will launch an ephemeral container using the <code>bitcoin-cli</code> image we built before. We can grab the cookie file from the corresponding data directory for authentication.</p>
+<pre><code class="language-sh">docker run --rm --network bitcoin-regtest -v $PWD/satoshi/regtest/.cookie:/root/.cookie bitcoin-cli -regtest -rpccookiefile=/root/.cookie -rpcconnect=10.0.0.2 -getinfo
+</code></pre>
+<p>This should give us confirmation again that the nodes are talking to each other.</p>
+<p>For convenience we can define the aliases <code>bitcoin-satoshi</code> and <code>bitcoin-hal</code> to make it easier to issue further calls.</p>
+<pre><code class="language-sh">alias bitcoin-satoshi=&quot;docker run --rm --network bitcoin-regtest -v $PWD/satoshi/regtest/.cookie:/root/.cookie bitcoin-cli -regtest -rpccookiefile=/root/.cookie -rpcconnect=10.0.0.2&quot;
+bitcoin-satoshi getpeerinfo
+# …
+</code></pre>
+<p>We can now play around with mining as well as transacting with real <code>regtest</code> coin! Reach out to me on Twitter if you have questions. I hope this guide can help other devs run their own experiments with the Bitcoin protocol.</p>
 
     </main>
-    
+    <footer>
+    <hr />
+    <p>Discuss this post <a href="https://twitter.com/notcraigwright/status/1491386914070753281">on Twitter</a>.</p>
+</footer>
 </article></main>
         <footer>
     <a href="https://github.com/craigwrong/craigwrong.github.io">Cypherpunks write code 👾</a>
