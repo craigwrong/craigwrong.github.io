@@ -1,6 +1,6 @@
 let site = Site(config,
     contentA: [
-        pageHome, pageAbout
+        pageHome, pageAbout, pageCategories
     ],
     contentB: [
         postSimulateTheBitcoinNetworkWithCoreAndDocker,
