@@ -5,6 +5,7 @@ let site = Site(config,
     contentB: [
         postSimulateTheBitcoinNetworkWithCoreAndDocker,
         postManualPayToTaprootDescriptors,
+        postIntroducingSwiftBitcoinLibrary,
     ],
     templates: [
         pageTemplate, homeTemplate, postTemplate, categoriesTemplate, categoryTemplate
