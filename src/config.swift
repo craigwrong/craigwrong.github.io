@@ -2,8 +2,8 @@ import SwiftySites
 import Foundation
 
 let config = SiteConfig(
-    title: "Timechain Coder ⚡️",
-    description: "Bitcoin and Lightning Network development.",
+    title: "Workchain Manipulator ⚡️",
+    description: "Bitcoin-only software development.",
     language: "en-us",
     editor: "@craigwrong",
     webmaster: "@craigwrong",
