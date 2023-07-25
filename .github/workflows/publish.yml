@@ -6,7 +6,7 @@ jobs:
   generate-and-publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: fwal/setup-swift@v1
+    - uses: swift-actions/setup-swift@v1
       with:
         swift-version: "5.5.2"
     - uses: actions/checkout@v2
