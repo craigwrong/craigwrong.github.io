@@ -1,4 +1,6 @@
-let categoryTemplate = Site.templateA(#"/category/[\W\w]+"#) { site, page in baseLayout(site: site, page: page, main: """
+import SwiftySites
+
+let categoryTemplate = Template(#//category/[\W\w]+/#) { (page: Page) in baseLayout(page: page, main: """
 <main class="category">
     <div>\(page.content)</div>
     <div>
@@ -6,11 +8,11 @@ let categoryTemplate = Site.templateA(#"/category/[\W\w]+"#) { site, page in bas
     </div>
     <br />
     <section>
-        \(site.contentB
+        \(posts
             .filter { $0.category == page.category }
             .sorted(by: Post.dateDescendingOrder).enumerated().map { """
-                \(summaryPartial(site, $1))
-                \($0 < site.contentB.count - 1 ? "<hr />" : "")
+                \(summaryPartial($1))
+                \($0 < posts.count - 1 ? "<hr />" : "")
             """ }
             .joined()
         )

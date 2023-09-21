@@ -1,4 +1,6 @@
-let postTemplate = Site.templateB { site, post in baseLayout(site: site, post: post, main: """
+import SwiftySites
+
+let postTemplate = Template { (post: Post) in baseLayout(post: post, main: """
 <main class="post"><article>
     <header>
         <p class="date">\(post.dateFormatted) • <a href="/category/\(post.category)">\(post.category.name)</a></p>

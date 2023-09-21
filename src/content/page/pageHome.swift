@@ -2,7 +2,7 @@ import SwiftySites
 
 let pageHome = Page("/", "Home") { #"""
 
-# Welcome, fellow Bitcoiner!
+# How do you do, fellow bitcoiners?
 
 This is a blog about Bitcoin and Bitcoin-only. I write primarily about Bitcoin development but also about The Lightning Network and other Bitcoin-centric technologies. I will never – ever – write about shitcoins so you can go ahead and bookmark this home page with confidence.
 

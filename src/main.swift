@@ -1,17 +1,23 @@
-let site = Site(config,
-    contentA: [
-        pageHome, pageAbout, pageCategories
-    ],
-    contentB: [
-        postSimulateTheBitcoinNetworkWithCoreAndDocker,
-        postManualPayToTaprootDescriptors,
-        postIntroducingSwiftBitcoinLibrary,
-    ],
-    templates: [
-        pageTemplate, homeTemplate, postTemplate, categoriesTemplate, categoryTemplate
-    ],
-    generators: [
-        categoriesGenerator
-    ])
+import SwiftySites
+
+let posts = [
+    postSimulateTheBitcoinNetworkWithCoreAndDocker,
+    postManualPayToTaprootDescriptors,
+    postIntroducingSwiftBitcoinLibrary,
+]
+
+let site = Site(
+    config,
+    content: (
+        [pageHome, pageAbout, pageCategories],
+        posts,
+        categories
+    ),
+    template: (
+        [pageTemplate, homeTemplate, categoriesTemplate],
+        [postTemplate],
+        [categoryTemplate]
+    )
+)
 
 site.render()

@@ -1,6 +1,6 @@
 import SwiftySites
 
-let navigationPartial = { (site: Site, page: Page?) -> String in """
+let navigationPartial = { (page: Page?) -> String in """
 <nav>
     <ul>
         \([pageHome, pageAbout].reduce("") {

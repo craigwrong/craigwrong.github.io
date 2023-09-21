@@ -1,6 +1,6 @@
 import SwiftySites
 
-func baseLayout (site: Site, page: Page? = nil, post: Post? = nil, main: String) -> String { """
+func baseLayout (page: Page? = nil, post: Post? = nil, main: String) -> String { """
 <!doctype html>
 <html lang="en">
     <head>
@@ -10,18 +10,18 @@ func baseLayout (site: Site, page: Page? = nil, post: Post? = nil, main: String)
         <link rel="stylesheet" href="/assets/highlight.css" />
         <script src="/assets/highlight.js"></script>
         <script>hljs.highlightAll();</script>
-        <title>\(site.config.title) | \(page?.title ?? post!.title)</title>
+        <title>\(config.title) | \(page?.title ?? post!.title)</title>
     </head>
     <body>
         <header>
             <div>
                 <div class="site-title">
                     <span class="name">Workchain Manipulator ⚡️</span> – Bitcoin-only software development</div>
-                \(navigationPartial(site, page))
+                \(navigationPartial(page))
             </div>
         </header>
         \(main)
-        \(footerPartial(site, page))
+        \(footerPartial(page))
     </body>
 </html>
 """ }
