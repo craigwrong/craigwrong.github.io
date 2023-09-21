@@ -31,9 +31,9 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Install Swift
-        uses: slashmo/install-swift@v0.1.0
+        uses: sersoft-gmbh/swifty-linux-action@v3
         with:
-          version: 5.9
+          release-version: 5.9
       - name: Build with SwiftySites
         run: swift run -c release swiftysites --clean
       - name: Upload artifact
